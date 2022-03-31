@@ -231,7 +231,7 @@ function MapGrid()
     {
         for ($i = 2; $i -ne 27; $i++) {
             $x = ($i - 2)
-            $global:screen_current[$i] = ($global:screen_current[$i].replace("<$x>",($global:grid[$x] + "")))
+            $global:screen_current[$i] = ($global:screen_current[$i].replace("<$x>",($global:grid[$x])))
             [byte]$global:sidebar_spaces = (24 - $global:sidebar[$x].Length)
             $global:screen_current[$i] = ($global:screen_current[$i].replace("<stat$x>"," " + ($global:sidebar[$x] + (" " * $global:sidebar_spaces))))
         }
@@ -239,7 +239,7 @@ function MapGrid()
     {
         for ($i = 2; $i -ne 27; $i++) {
             $x = ($i - 2)
-            $global:screen_current[$i] = ($global:screen_current[$i].replace("<$x>",($global:world[$x] + "")))
+            $global:screen_current[$i] = ($global:screen_current[$i].replace("<$x>",($global:world[$x])))
             [byte]$global:sidebar_spaces = (24 - $global:sidebar[$x].Length)
             $global:screen_current[$i] = ($global:screen_current[$i].replace("<stat$x>"," " + ($global:sidebar[$x] + (" " * $global:sidebar_spaces))))
         }
@@ -248,6 +248,27 @@ function MapGrid()
         $x = ($i - 30)
         [byte]$global:log_spaces = (77 - $global:log[$x].Length)
         $global:screen_current[$i] = ($global:screen_current[$i].replace("<log$x>"," " + ($global:log[$x] + (" " * $global:log_spaces))))
+    }
+}
+
+function DrawTileGrid()
+{
+    Write-Host $global:screen_current[0]
+    Write-Host $global:screen_current[1]
+    for ($i = 2; $i -ne 27; $i++) {
+        [string]$prefix = $global:screen_current[$i].substring(0,4)
+        [string]$tilegrid = $global:screen_current[$i].substring(4,49)
+        [string]$suffix = $global:screen_current[$i].substring(53,29)
+        [byte[]]$gridline = $tilegrid.split(" ")
+        Write-Host $prefix -nonewline
+        foreach ($gridsquare in $gridline) {
+            Write-Host $global:tileset[$gridsquare][0] -backgroundcolor $global:tileset[$gridsquare][1] -foregroundcolor $global:tileset[$gridsquare][2] -nonewline
+        }
+        Write-Host "" -nonewline
+        Write-Host $suffix
+    }
+    for ($i = 27; $i -ne 41; $i++) {
+        Write-Host $global:screen_current[$i]
     }
 }
 
@@ -266,9 +287,7 @@ function Redraw()
     }
     Write-Host ""
     MapGrid
-    foreach ($element in $global:screen_current) {
-        Write-Host $element
-    }
+    DrawTileGrid
     Write-Host ""
 }
 
