@@ -4,21 +4,27 @@
 [byte]$global:screenheight = 43
 [byte]$global:screenwidth = 83
 
-[byte]$global:value = 1
-[byte]$global:number = 2
 [string]$global:gamestate
 
-[byte]$global:globalpixel = 1
-[byte]$global:localpixel = 1
+# these need to be stored in an array as part of each entity
+[byte]$global:playery = 16
+[byte]$global:playerx = 2
+[string]$global:playerchar = "I"
+[string]$global:playercolor = "red"
 
 [string]$global:mapstate = "local"
 
+# symbol, background, foreground, tilename
 $global:tileset = @(
-    @("~~", "darkblue", "blue"), #0, water
-    @("´,", "green", "darkgreen"), #1, grass
-    @("@@", "green", "darkgreen"), #3, trees
-    @("⇞⇞", "green", "darkgreen") #4, pinetrees
+    @("~~", "darkblue", "blue", "water"),
+    @("´,", "green", "darkgreen", "grass"),
+    @("@@", "green", "darkgreen", "trees"),
+    @("⇞⇞", "green", "darkgreen", "pinetrees")
 )
+
+[string[]]$global:xaxis = @("A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y")
+
+[string[]]$global:yaxis = @("01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25")
 
 $global:world = @(
     @(1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0),
@@ -260,9 +266,24 @@ function DrawTileGrid()
         [string]$tilegrid = $global:screen_current[$i].substring(4,49)
         [string]$suffix = $global:screen_current[$i].substring(53,29)
         [byte[]]$gridline = $tilegrid.split(" ")
+        [byte]$yline = ($i - 2)
+        [int16]$xsquare = -1
         Write-Host $prefix -nonewline
-        foreach ($gridsquare in $gridline) {
-            Write-Host $global:tileset[$gridsquare][0] -backgroundcolor $global:tileset[$gridsquare][1] -foregroundcolor $global:tileset[$gridsquare][2] -nonewline
+        if ($yline -eq $global:playery) {
+            foreach ($gridsquare in $gridline) {
+                $xsquare = ($xsquare + 1)
+                if ($xsquare -eq $global:playerx) {
+                    [string]$halftile = $global:tileset[$gridsquare][0].substring(0,1)
+                    Write-Host $halftile -backgroundcolor $global:tileset[$gridsquare][1] -foregroundcolor $global:tileset[$gridsquare][2] -nonewline
+                    Write-Host $global:playerchar -backgroundcolor $global:tileset[$gridsquare][1] -foregroundcolor $global:playercolor -nonewline
+                } else {
+                    Write-Host $global:tileset[$gridsquare][0] -backgroundcolor $global:tileset[$gridsquare][1] -foregroundcolor $global:tileset[$gridsquare][2] -nonewline
+                }
+            }
+        } else {
+            foreach ($gridsquare in $gridline) {
+                Write-Host $global:tileset[$gridsquare][0] -backgroundcolor $global:tileset[$gridsquare][1] -foregroundcolor $global:tileset[$gridsquare][2] -nonewline
+            }
         }
         Write-Host "" -nonewline
         Write-Host $suffix
@@ -277,37 +298,37 @@ function Redraw()
     $global:gamestate = "map"
     Clear-Host
     Write-Host "   " -nonewline
-    #Write-Host "Game State: $global:gamestate, Value = $global:value, Number = $global:number"
     Write-Host "Map State: " -nonewline
-    if ($global:mapstate -eq "local")
-    {
-        Write-Host "local" -foregroundcolor red
-    }else{
-        Write-Host "global" -foregroundcolor blue
+    if ($global:mapstate -eq "local") {
+        Write-Host "local" -foregroundcolor red -nonewline
+    }else {
+        Write-Host "global" -foregroundcolor blue -nonewline
     }
+    Write-Host " " -nonewline
+    Write-Host "Player Location: " -nonewline
+    Write-Host ($global:xaxis[$global:playerx] + $global:yaxis[$global:playery]) -foregroundcolor green -nonewline
     Write-Host ""
     MapGrid
     DrawTileGrid
     Write-Host ""
 }
 
-function SetValue() #debug
+function MovePlayer() #debug
 {
-    $global:value = Read-Host "New value"
+    Write-Host "   " -nonewline
+    [string]$newlocation = Read-Host "Enter new location in XYY format"
+    [string]$newx = $newlocation.substring(0,1)
+    [string]$newy = $newlocation.substring(1,2)
+    $global:playerx = [array]::indexof($global:xaxis,$newx)
+    $global:playery = [array]::indexof($global:yaxis,$newy)
 }
 
-function SetNumber() #debug
-{
-    $global:number = Read-Host "New number"
-}
 
 function ToggleMap()
 {
-    if ($global:mapstate -eq "local")
-    {
+    if ($global:mapstate -eq "local") {
         $global:mapstate = "world"
-    }else
-    {
+    }else {
         $global:mapstate = "local"
     }
 }
@@ -325,8 +346,7 @@ function GetTileset() #debug
 function Quit()
 {
     Clear-Host
-    if ($IsWindows -eq $true)
-    {
+    if ($IsWindows -eq $true) {
     $phost.ui.rawui.windowsize.height = $global:oldheight
     $phost.ui.rawui.windowsize.width = $global:oldwidth
     }
@@ -349,8 +369,7 @@ function Prompt()
 Init
 Redraw
 
-while ($true)
-{
+while ($true) {
     Prompt
 }
 
