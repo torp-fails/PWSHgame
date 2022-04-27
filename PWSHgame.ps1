@@ -10,7 +10,7 @@
 [string]$global:playerchar = "I"
 [string]$global:playercolor = "red"
 
-[string]$global:mapstate = "local"
+[bool]$global:localMap = $true
 
 # symbol, background, foreground, tilename
 $global:tileset = @(
@@ -240,11 +240,11 @@ function MovePlayer() { #debug
 
 
 function ToggleMap() {
-    if ($global:mapstate -eq "local") {
-        $global:mapstate = "world"
+    if ($global:localMap -eq $true) {
+        $global:localMap = $false
         $global:grid = $global:world
     }else {
-        $global:mapstate = "local"
+        $global:localMap = $true
         $global:grid = $global:map
     }
 }
